@@ -58,6 +58,10 @@ func Format(fileContent string) string {
 	cmd := ""
 	isMark := false
 	numberOfWords := 1
+	base := map[string]string{
+		"hex": "0123456789ABCDEF",
+		"bin": "01",
+	}
 	for i := len(fileContent) - 1; i >= 0; i-- {
 		char := rune(fileContent[i])
 		if char == '(' {
@@ -77,21 +81,23 @@ func Format(fileContent string) string {
 				}
 			} else {
 				if cmd != "" {
-					if char == ' ' {
-						numberOfWords--
-						if cmd == "hex" {
-							number := " " + ConvertBase(toUpper(string(buffer)), "0123456789ABCDEF", "0123456789")
-							runes = append([]rune(number), runes...)
-							buffer = []rune{}
-							cmd = ""
-							continue
-						} else if cmd == "bin" {
-							number := " " + ConvertBase(string(buffer), "01", "0123456789")
+					if char == ' ' || i == 0 {
+						if cmd == "hex" || cmd == "bin" {
+							if i == 0 {
+								buffer = append([]rune{char}, buffer...)
+							}
+							number := ConvertBase(toUpper(string(buffer)), base[cmd], "0123456789")
+							if char == ' ' {
+								number = " " + number
+							}
 							runes = append([]rune(number), runes...)
 							buffer = []rune{}
 							cmd = ""
 							continue
 						}
+					}
+					if char == ' ' {
+						numberOfWords--
 						if numberOfWords == 0 {
 							numberOfWords = 1
 							cmd = ""

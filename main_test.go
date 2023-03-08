@@ -43,6 +43,10 @@ func TestGoReloaded(t *testing.T) {
 			input:    "harold wilson (cap, 2) : ' I am a optimist ,but a optimist who carries a raincoat . '",
 			expected: "Harold Wilson: 'I am an optimist, but an optimist who carries a raincoat.'",
 		},
+		{
+			input:    "1e (hex) files were added ... It has been 10 (bin) years . Ready, set, go (up) ! Welcome to the Brooklyn bridge (cap). This is so exciting (up, 2)",
+			expected: "30 files were added... It has been 2 years. Ready, set, GO! Welcome to the Brooklyn Bridge. This is SO EXCITING",
+		},
 	}
 	for _, test := range tests {
 		if output := Format(test.input); output != test.expected {
