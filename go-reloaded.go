@@ -1,4 +1,4 @@
-package goreloaded
+package main
 
 import (
 	"fmt"
@@ -22,22 +22,25 @@ func isPunctuation(char rune) bool {
 	return char == ',' || char == '.' || char == '!' || char == '?' || char == ':' || char == ';' || char == '\''
 }
 
-func GetArgs() (string, string) {
+// Get execution's argument. Return the input and output file name
+func getArgs() (string, string, string) {
 	if len(os.Args) == 3 {
-		return os.Args[1], os.Args[2]
+		return os.Args[1], os.Args[2], ""
 	}
-	return "", ""
+	return "", "", "Invalid number of argument"
 }
 
-func getFile(file string) string {
+// Get the input file content as a string
+func getInputFile(file string) string {
 	content, err := os.ReadFile(file)
 	if err != nil {
-		fmt.Println("Not found")
+		fmt.Println("Input file not found")
 		return ""
 	}
 	return string(content)
 }
 
+// Format the input file content with specified rules
 func Format(fileContent string) string {
 	runes := []rune{}
 	buffer := []rune{}
@@ -143,18 +146,24 @@ func Format(fileContent string) string {
 	return string(runes)
 }
 
-func createResultFile(fileName string, fileContent string) {
+// Create the output File with formated content
+func createOutputFile(fileName string, fileContent string) {
 	file, err := os.Create(fileName)
 	if err != nil {
-		fmt.Println("Creation Error")
+		fmt.Println("Output file creation error")
 	}
 	file.WriteString(fileContent)
 	file.Close()
 }
 
+// Launch the go reloaded process
 func Run() {
-	inputFileName, outputFileName := GetArgs()
-	fileContent := getFile(inputFileName)
-	result := Format(fileContent)
-	createResultFile(outputFileName, result)
+	inputFileName, outputFileName, error := getArgs()
+	if error == "" {
+		fileContent := getInputFile(inputFileName)
+		result := Format(fileContent)
+		createOutputFile(outputFileName, result)
+	} else {
+		fmt.Println(error)
+	}
 }

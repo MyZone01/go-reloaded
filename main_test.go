@@ -1,7 +1,6 @@
 package main
 
 import (
-	"goreloaded"
 	"testing"
 )
 
@@ -46,7 +45,7 @@ func TestGoReloaded(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		if output := goreloaded.Format(test.input); output != test.expected {
+		if output := Format(test.input); output != test.expected {
 			t.Error("Test Failed:\nInputted: ", test.input, "\nExpected: ", test.expected, "\nReceived: ", output)
 		}
 	}

@@ -1,3 +1,3 @@
-module goreloaded
+module main
 
 go 1.19

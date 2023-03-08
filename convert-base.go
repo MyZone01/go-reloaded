@@ -1,4 +1,5 @@
-package goreloaded
+package main
+// Functions imported from piscine go
 
 func Index(s string, toFind string) int {
 	if len(toFind) == 0 {
