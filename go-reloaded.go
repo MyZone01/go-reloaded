@@ -5,6 +5,16 @@ import (
 	"os"
 )
 
+func toUpper(s string) string {
+	runes := []rune(s)
+	for i := 0; i < len(s); i++ {
+		if s[i] >= 'a' && s[i] <= 'z' {
+			runes[i] = rune(runes[i] - 32)
+		}
+	}
+	return string(runes)
+}
+
 func isVowel(char rune) bool {
 	return char == 'a' ||
 		char == 'A' ||
@@ -70,7 +80,7 @@ func Format(fileContent string) string {
 					if char == ' ' {
 						numberOfWords--
 						if cmd == "hex" {
-							number := " " + ConvertBase(string(buffer), "0123456789ABCDEF", "0123456789")
+							number := " " + ConvertBase(toUpper(string(buffer)), "0123456789ABCDEF", "0123456789")
 							runes = append([]rune(number), runes...)
 							buffer = []rune{}
 							cmd = ""
