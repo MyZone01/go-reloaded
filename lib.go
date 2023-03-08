@@ -5,6 +5,23 @@ import (
 	"os"
 )
 
+func isVowel(char rune) bool {
+	return char == 'a' ||
+		char == 'A' ||
+		char == 'e' ||
+		char == 'E' ||
+		char == 'o' ||
+		char == 'O' ||
+		char == 'u' ||
+		char == 'U' ||
+		char == 'i' ||
+		char == 'I'
+}
+
+func isPunctuation(char rune) bool {
+	return char == ',' || char == '.' || char == '!' || char == '?' || char == ':' || char == ';' || char == '\''
+}
+
 func GetArgs() (string, string) {
 	if len(os.Args) == 3 {
 		return os.Args[1], os.Args[2]
@@ -12,7 +29,7 @@ func GetArgs() (string, string) {
 	return "", ""
 }
 
-func GetFile(file string) string {
+func getFile(file string) string {
 	content, err := os.ReadFile(file)
 	if err != nil {
 		fmt.Println("Not found")
@@ -90,20 +107,22 @@ func Format(fileContent string) string {
 				}
 				if isPunctuation(char) {
 					if char == '\'' {
-						if !isMark {
-							if i != len(fileContent)-1 && fileContent[i+1] != ' ' {
-								runes = append([]rune{' '}, runes...)
-							} else if i != 0 && fileContent[i-1] == ' ' {
-								i--
+						if (i != len(fileContent)-1 && i >= 3 && fileContent[i-3:i+2] != "don't") || i == len(fileContent)-1 || i < 3 {
+							if !isMark {
+								if i != len(fileContent)-1 && fileContent[i+1] != ' ' {
+									runes = append([]rune{' '}, runes...)
+								} else if i != 0 && fileContent[i-1] == ' ' {
+									i--
+								}
+							} else {
+								if i != len(fileContent)-1 && fileContent[i+1] == ' ' {
+									runes = runes[1:]
+								} else if i != 0 && fileContent[i-1] != ' ' {
+									runes = append([]rune{' '}, runes...)
+								}
 							}
-						} else {
-							if i != len(fileContent)-1 && fileContent[i+1] == ' ' {
-								runes = runes[1:]
-							} else if i != 0 && fileContent[i-1] != ' ' {
-								runes = append([]rune{' '}, runes...)
-							}
+							isMark = !isMark
 						}
-						isMark = !isMark
 					} else {
 						if i != len(fileContent)-1 && fileContent[i+1] != '.' && fileContent[i+1] != '?' && fileContent[i+1] != ' ' {
 							runes = append([]rune{' '}, runes...)
@@ -124,28 +143,18 @@ func Format(fileContent string) string {
 	return string(runes)
 }
 
-func isVowel(char rune) bool {
-	return char == 'a' ||
-		char == 'A' ||
-		char == 'e' ||
-		char == 'E' ||
-		char == 'o' ||
-		char == 'O' ||
-		char == 'u' ||
-		char == 'U' ||
-		char == 'i' ||
-		char == 'I'
-}
-
-func isPunctuation(char rune) bool {
-	return char == ',' || char == '.' || char == '!' || char == '?' || char == ':' || char == ';' || char == '\''
-}
-
-func CreateResultFile(fileName string, fileContent string) {
+func createResultFile(fileName string, fileContent string) {
 	file, err := os.Create(fileName)
 	if err != nil {
 		fmt.Println("Creation Error")
 	}
 	file.WriteString(fileContent)
 	file.Close()
+}
+
+func Run() {
+	inputFileName, outputFileName := GetArgs()
+	fileContent := getFile(inputFileName)
+	result := Format(fileContent)
+	createResultFile(outputFileName, result)
 }
