@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	goreloaded "goreloaded/lib"
 	"testing"
 )
 
@@ -47,10 +49,20 @@ func TestGoReloaded(t *testing.T) {
 			input:    "1e (hex) files were added ... It has been 10 (bin) years . Ready, set, go (up) ! Welcome to the Brooklyn bridge (cap). This is so exciting (up, 2)",
 			expected: "30 files were added... It has been 2 years. Ready, set, GO! Welcome to the Brooklyn Bridge. This is SO EXCITING",
 		},
+		{
+			input:    "lower (up) UPPER UPPER (low, 3)",
+			expected: "lower upper upper",
+		},
+		{
+			input:    "flapjacks (cap) are' the best (up, 2) 'snacks (ever)    ... aren't they a oat (cap, 2) treat",
+			expected: "Flapjacks are 'THE BEST' snacks (ever)... aren't they An Oat treat",
+		},
 	}
 	for _, test := range tests {
-		if output := Format(test.input); output != test.expected {
-			t.Error("Test Failed:\nInputted: ", test.input, "\nExpected: ", test.expected, "\nReceived: ", output)
+		if output := goreloaded.Format(test.input); output != test.expected {
+			t.Error("❌ Test Failed:\nInputted: ", test.input, "\nExpected: ", test.expected, "\nReceived: ", output)
+		} else {
+			fmt.Println("✅ Test Succeeded")
 		}
 	}
 }

@@ -1,5 +1,7 @@
 package main
 
+import goreloaded "goreloaded/lib"
+
 func main() {
-	Run()
+	goreloaded.Run()
 }

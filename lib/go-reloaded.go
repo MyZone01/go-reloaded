@@ -1,53 +1,20 @@
-package main
+package goreloaded
 
 import (
 	"fmt"
 	"os"
 )
 
-func toUpper(s string) string {
-	runes := []rune(s)
-	for i := 0; i < len(s); i++ {
-		if s[i] >= 'a' && s[i] <= 'z' {
-			runes[i] = rune(runes[i] - 32)
-		}
-	}
-	return string(runes)
+func isVowel(char rune) bool {
+	return char == 'a' || char == 'A' || char == 'e' || char == 'E' || char == 'o' || char == 'O' || char == 'u' || char == 'U' || char == 'i' || char == 'I'
 }
 
-func isVowel(char rune) bool {
-	return char == 'a' ||
-		char == 'A' ||
-		char == 'e' ||
-		char == 'E' ||
-		char == 'o' ||
-		char == 'O' ||
-		char == 'u' ||
-		char == 'U' ||
-		char == 'i' ||
-		char == 'I'
+func isHeadWord(char rune, str string, i int) bool {
+	return i == 0 || str[i-1] == ' ' || isPunctuation(rune(str[i-1]))
 }
 
 func isPunctuation(char rune) bool {
 	return char == ',' || char == '.' || char == '!' || char == '?' || char == ':' || char == ';' || char == '\''
-}
-
-// Get execution's argument. Return the input and output file name
-func getArgs() (string, string, string) {
-	if len(os.Args) == 3 {
-		return os.Args[1], os.Args[2], ""
-	}
-	return "", "", "Invalid number of argument"
-}
-
-// Get the input file content as a string
-func getInputFile(file string) string {
-	content, err := os.ReadFile(file)
-	if err != nil {
-		fmt.Println("Input file not found")
-		return ""
-	}
-	return string(content)
 }
 
 // Format the input file content with specified rules
@@ -65,7 +32,9 @@ func Format(fileContent string) string {
 	for i := len(fileContent) - 1; i >= 0; i-- {
 		char := rune(fileContent[i])
 		if char == '(' {
-			cmd = string(buffer)
+			if cmd == "" {
+				cmd = string(buffer)
+			}
 			buffer = []rune{}
 			i--
 			cmdFound = false
@@ -86,7 +55,7 @@ func Format(fileContent string) string {
 							if i == 0 {
 								buffer = append([]rune{char}, buffer...)
 							}
-							number := ConvertBase(toUpper(string(buffer)), base[cmd], "0123456789")
+							number := ConvertBase(string(buffer), base[cmd], "0123456789")
 							if char == ' ' {
 								number = " " + number
 							}
@@ -103,24 +72,15 @@ func Format(fileContent string) string {
 							cmd = ""
 						}
 					} else {
-						if cmd == "hex" {
+						if cmd == "hex" || cmd == "bin" {
 							buffer = append([]rune{char}, buffer...)
 							continue
-						} else if cmd == "bin" {
-							buffer = append([]rune{char}, buffer...)
-							continue
-						} else if cmd == "up" {
-							if char >= 'a' && char <= 'z' {
-								char -= 32
-							}
-						} else if cmd == "low" {
-							if char >= 'A' && char <= 'Z' {
-								char += 32
-							}
-						} else if cmd == "cap" && (i == 0 || fileContent[i-1] == ' ') {
-							if char >= 'a' && char <= 'z' {
-								char -= 32
-							}
+						} else if cmd == "up" && char >= 'a' && char <= 'z' {
+							char -= 32
+						} else if cmd == "low" && char >= 'A' && char <= 'Z' {
+							char += 32
+						} else if cmd == "cap" && isHeadWord(char, fileContent, i) && char >= 'a' && char <= 'z' {
+							char -= 32
 						}
 					}
 				}
@@ -150,8 +110,8 @@ func Format(fileContent string) string {
 							i--
 						}
 					}
-				} else if (char == 'a' || char == 'A') && (i == 0 || fileContent[i-1] == ' ') && fileContent[i+1] == ' ' {
-					if isVowel(rune(fileContent[i+2])) {
+				} else if (char == 'a' || char == 'A') && (i == 0 || fileContent[i-1] == ' ') && (i == len(fileContent)-1 || fileContent[i+1] == ' ') {
+					if i != len(fileContent)-1 && isVowel(rune(fileContent[i+2])) {
 						runes = append([]rune{'n'}, runes...)
 					}
 				}
@@ -162,24 +122,24 @@ func Format(fileContent string) string {
 	return string(runes)
 }
 
-// Create the output File with formated content
-func createOutputFile(fileName string, fileContent string) {
-	file, err := os.Create(fileName)
-	if err != nil {
-		fmt.Println("Output file creation error")
-	}
-	file.WriteString(fileContent)
-	file.Close()
-}
-
 // Launch the go reloaded process
 func Run() {
-	inputFileName, outputFileName, error := getArgs()
-	if error == "" {
-		fileContent := getInputFile(inputFileName)
-		result := Format(fileContent)
-		createOutputFile(outputFileName, result)
+	if len(os.Args) == 3 {
+		inputFileName, outputFileName := os.Args[1], os.Args[2]
+		fileContent, err := os.ReadFile(inputFileName)
+		if err != nil {
+			fmt.Println("Input file not found")
+			os.Exit(1)
+		}
+		result := Format(string(fileContent))
+		file, err := os.Create(outputFileName)
+		if err != nil {
+			fmt.Println("Output file creation error")
+		}
+		file.WriteString(result)
+		file.Close()
 	} else {
-		fmt.Println(error)
+		fmt.Println("You should have 3 arguments")
+		os.Exit(1)
 	}
 }

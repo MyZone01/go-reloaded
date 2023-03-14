@@ -1,7 +1,8 @@
-package main
+package goreloaded
+
 // Functions imported from piscine go
 
-func Index(s string, toFind string) int {
+func index(s string, toFind string) int {
 	if len(toFind) == 0 {
 		return 0
 	}
@@ -14,8 +15,19 @@ func Index(s string, toFind string) int {
 	return -1
 }
 
+func toUpper(s string) string {
+	runes := []rune(s)
+	for i := 0; i < len(s); i++ {
+		if s[i] >= 'a' && s[i] <= 'z' {
+			runes[i] = rune(runes[i] - 32)
+		}
+	}
+	return string(runes)
+}
+
+
 func ConvertBase(nbr, baseFrom, baseTo string) string {
-	return NbrBase(AtoiBase(nbr, baseFrom), baseTo)
+	return nbrBase(AtoiBase(toUpper(nbr), baseFrom), baseTo)
 }
 
 func AtoiBase(s string, base string) int {
@@ -29,7 +41,7 @@ func AtoiBase(s string, base string) int {
 	}
 	numberLen := len(s)
 	for i := numberLen - 1; i >= 0; i-- {
-		number += Index(base, string(s[i])) * factor
+		number += index(base, string(s[i])) * factor
 		if !isNegative && number < 0 {
 			number = -(number + 1)
 		}
@@ -41,7 +53,7 @@ func AtoiBase(s string, base string) int {
 	return number
 }
 
-func NbrBase(nbr int, base string) string {
+func nbrBase(nbr int, base string) string {
 	baseLen := len(base)
 	number := ""
 	isNegative := false
@@ -63,11 +75,11 @@ func NbrBase(nbr int, base string) string {
 	if isNegative {
 		number += "-"
 	}
-	number = StrRev(number)
+	number = strRev(number)
 	return number
 }
 
-func StrRev(s string) string {
+func strRev(s string) string {
 	reverse := []rune(s)
 	for i := 0; i < len(s)/2; i++ {
 		reverse[i], reverse[len(s)-1-i] = reverse[len(s)-1-i], reverse[i]
