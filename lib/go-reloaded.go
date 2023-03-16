@@ -7,20 +7,27 @@ import (
 	"strings"
 )
 
+type Command struct {
+	name          string
+	numberOfWords int
+	skippedWords  int
+	cmd           *Command
+}
+
 func isVowel(char rune) bool {
 	return char == 'a' || char == 'A' || char == 'e' || char == 'E' || char == 'o' || char == 'O' || char == 'u' || char == 'U' || char == 'i' || char == 'I'
 }
 
 func isHeadWord(char rune, str string, i int) bool {
-	return i == 0 ||
-		str[i-1] == ' ' ||
-		str[i-1] == '(' ||
-		str[i-1] == ')' ||
-		isPunctuation(rune(str[i-1]))
+	return i == 0 || !isAlphaNumeric(rune(str[i-1]))
 }
 
 func isPunctuation(char rune) bool {
 	return char == ',' || char == '.' || char == '!' || char == '?' || char == ':' || char == ';' || char == '\''
+}
+
+func isAlphaNumeric(char rune) bool {
+	return (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') || (char >= '0' && char <= '9')
 }
 
 // Format the input file content with specified rules
@@ -28,10 +35,13 @@ func Format(fileContent string) string {
 	result := []rune{}
 	buffer := []rune{}
 	cmdFound := false
-	cmd := ""
+	cmd := Command{
+		name:          "",
+		numberOfWords: 1,
+		skippedWords:  0,
+	}
 	// overideCmd := ""
 	isMark := false
-	numberOfWords := 1
 	base := map[string]string{
 		"hex": "0123456789ABCDEF",
 		"dec": "0123456789",
@@ -41,19 +51,19 @@ func Format(fileContent string) string {
 	for i := len(fileContent) - 1; i >= 0; i-- {
 		char := rune(fileContent[i])
 		if char == '(' {
-			if cmd == "" {
+			if cmd.name == "" {
 				buffer = append([]rune{char}, buffer...)
 				_cmd := string(buffer)
 				isMatch := cmdRegEx.MatchString(_cmd)
 				if isMatch {
 					_cmd = _cmd[1 : len(_cmd)-1]
 					cmdPart := strings.Split(_cmd, ", ")
-					cmd = cmdPart[0]
+					cmd.name = cmdPart[0]
 					if len(cmdPart) == 2 {
 						number := cmdPart[1]
-						numberOfWords = AtoiBase(string(number), base["dec"])
+						cmd.numberOfWords = AtoiBase(string(number), base["dec"])
 					}
-					if isHeadWord(char, fileContent, i) {
+					if i > 0 && fileContent[i-1] == ' ' {
 						i--
 					}
 				} else {
@@ -83,30 +93,30 @@ func Format(fileContent string) string {
 							result = append([]rune{'n'}, result...)
 						}
 					}
-					if cmd == "cap" && char >= 'a' && char <= 'z' {
+					if cmd.name == "cap" && char >= 'a' && char <= 'z' {
 						char -= 32
 						result = append([]rune{char}, result...)
-						numberOfWords--
-						if numberOfWords == 0 {
-							numberOfWords = 1
-							cmd = ""
+						cmd.numberOfWords--
+						if cmd.numberOfWords == 0 {
+							cmd.numberOfWords = 1
+							cmd.name = ""
 						}
 						continue
-					} else if cmd == "hex" || cmd == "bin" {
+					} else if cmd.name == "hex" || cmd.name == "bin" {
 						buffer = append([]rune{char}, buffer...)
-						number := ConvertBase(string(buffer), base[cmd], "0123456789")
+						number := ConvertBase(string(buffer), base[cmd.name], "0123456789")
 						result = append([]rune(number), result...)
 						buffer = []rune{}
-						cmd = ""
+						cmd.name = ""
 						continue
 					}
 				}
 				if char == ' ' || isPunctuation(char) {
-					if cmd != "cap" {
-						numberOfWords--
-						if numberOfWords == 0 {
-							numberOfWords = 1
-							cmd = ""
+					if cmd.name != "cap" {
+						cmd.numberOfWords--
+						if cmd.numberOfWords == 0 {
+							cmd.numberOfWords = 1
+							cmd.name = ""
 						}
 					}
 					if isPunctuation(char) {
@@ -139,12 +149,12 @@ func Format(fileContent string) string {
 						}
 					}
 				} else {
-					if cmd == "hex" || cmd == "bin" {
+					if cmd.name == "hex" || cmd.name == "bin" {
 						buffer = append([]rune{char}, buffer...)
 						continue
-					} else if cmd == "up" && char >= 'a' && char <= 'z' {
+					} else if cmd.name == "up" && char >= 'a' && char <= 'z' {
 						char -= 32
-					} else if cmd == "low" && char >= 'A' && char <= 'Z' {
+					} else if cmd.name == "low" && char >= 'A' && char <= 'Z' {
 						char += 32
 					}
 				}
