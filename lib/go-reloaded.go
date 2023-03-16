@@ -11,7 +11,7 @@ type Command struct {
 	name          string
 	numberOfWords int
 	skippedWords  int
-	cmd           *Command
+	overlap      *Command
 }
 
 func isVowel(char rune) bool {
@@ -40,7 +40,6 @@ func Format(fileContent string) string {
 		numberOfWords: 1,
 		skippedWords:  0,
 	}
-	// overideCmd := ""
 	isMark := false
 	base := map[string]string{
 		"hex": "0123456789ABCDEF",
@@ -70,7 +69,23 @@ func Format(fileContent string) string {
 					result = append(buffer, result...)
 				}
 			} else if len(buffer) == 0 {
-				result = append([]rune{char}, result...)
+				buffer = append([]rune{char}, buffer...)
+				_cmd := string(buffer)
+				isMatch := cmdRegEx.MatchString(_cmd)
+				if isMatch {
+					_cmd = _cmd[1 : len(_cmd)-1]
+					cmdPart := strings.Split(_cmd, ", ")
+					cmd.name = cmdPart[0]
+					if len(cmdPart) == 2 {
+						number := cmdPart[1]
+						cmd.numberOfWords = AtoiBase(string(number), base["dec"])
+					}
+					if i > 0 && fileContent[i-1] == ' ' {
+						i--
+					}
+				} else {
+					result = append([]rune{char}, result...)
+				}
 			}
 			buffer = []rune{}
 			cmdFound = false
@@ -93,8 +108,10 @@ func Format(fileContent string) string {
 							result = append([]rune{'n'}, result...)
 						}
 					}
-					if cmd.name == "cap" && char >= 'a' && char <= 'z' {
-						char -= 32
+					if cmd.name == "cap" {
+						if char >= 'a' && char <= 'z' {
+							char -= 32
+						}
 						result = append([]rune{char}, result...)
 						cmd.numberOfWords--
 						if cmd.numberOfWords == 0 {
@@ -103,12 +120,14 @@ func Format(fileContent string) string {
 						}
 						continue
 					} else if cmd.name == "hex" || cmd.name == "bin" {
-						buffer = append([]rune{char}, buffer...)
-						number := ConvertBase(string(buffer), base[cmd.name], "0123456789")
-						result = append([]rune(number), result...)
-						buffer = []rune{}
-						cmd.name = ""
-						continue
+						if !isPunctuation(char) {
+							buffer = append([]rune{char}, buffer...)
+							number := ConvertBase(string(buffer), base[cmd.name], "0123456789")
+							result = append([]rune(number), result...)
+							buffer = []rune{}
+							cmd.name = ""
+							continue
+						}
 					}
 				}
 				if char == ' ' || isPunctuation(char) {

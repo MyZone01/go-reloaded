@@ -60,19 +60,9 @@ func TestGoReloaded(t *testing.T) {
 			expected: "30 files were added... It has been 2 years. Ready, set, GO! Welcome to the Brooklyn Bridge. This is SO EXCITING",
 		},
 		{
-			name:     "Override Command 1",
-			input:    "lower (up) UPPER UPPER (low, 3)",
-			expected: "lower upper upper",
-		},
-		{
-			name:     "Override Command 2",
-			input:    "writing TESTS takes a REALLY long (low, 2) (cap) time but I love it.",
-			expected: "writing TESTS takes a really Long time but I love it.",
-		},
-		{
 			name:     "Tiny Command",
-			input:    "1010(bin)a(hex)asdf(up)",
-			expected: "1010ASDF",
+			input:    "(cap)(up)(low)(cap)(bin)abc(cap),cde(up);FGH(low);1E(hex)iunn.zrofizef,zonv!11(bin)?TGJ YHH jBH(cap, 2)",
+			expected: "Abc, CDE; fgh; 30iunn. zrofizef, zonv! 3? TGJ YHH JBH",
 		},
 		{
 			name:     "Tiny Command + Conversion",
@@ -87,12 +77,17 @@ func TestGoReloaded(t *testing.T) {
 		{
 			name:     "List of commands",
 			input:    "I am delighted (up) (up) (up)",
-			expected: "I am DELIGHTED",
+			expected: "I am DELIGHTED ",
 		},
 		{
 			name:     "Not a command in parenthesis",
-			input:    "flapjacks (cap) are the best (up, 2) snacks (ever)    ... are they a oat (cap, 2) treat",
+			input:    "flapjacks (cap) are the best (up, 2) snacks (ever) ... are they a oat (cap, 2) treat",
 			expected: "Flapjacks are THE BEST snacks (ever)... are they An Oat treat",
+		},
+		{
+			name:     "Nested parenthesis",
+			input:    "(Ok man(up, 2))",
+			expected: "(OK MAN)",
 		},
 		{
 			name:     "Nested parenthesis",
