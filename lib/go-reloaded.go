@@ -10,7 +10,7 @@ func isVowel(char rune) bool {
 }
 
 func isHeadWord(char rune, str string, i int) bool {
-	return i == 0 || str[i-1] == ' ' || isPunctuation(rune(str[i-1]))
+	return i == 0 || str[i-1] == ' ' || str[i-1] == '(' || str[i-1] == ')' || isPunctuation(rune(str[i-1]))
 }
 
 func isPunctuation(char rune) bool {
@@ -19,10 +19,11 @@ func isPunctuation(char rune) bool {
 
 // Format the input file content with specified rules
 func Format(fileContent string) string {
-	runes := []rune{}
+	result := []rune{}
 	buffer := []rune{}
 	cmdFound := false
 	cmd := ""
+	// overideCmd := ""
 	isMark := false
 	numberOfWords := 1
 	base := map[string]string{
@@ -36,7 +37,9 @@ func Format(fileContent string) string {
 				cmd = string(buffer)
 			}
 			buffer = []rune{}
-			i--
+			if isHeadWord(char, fileContent, i) {
+				i--
+			}
 			cmdFound = false
 		} else if char == ')' {
 			cmdFound = true
@@ -49,77 +52,82 @@ func Format(fileContent string) string {
 					buffer = append([]rune{char}, buffer...)
 				}
 			} else {
-				if cmd != "" {
-					if char == ' ' || i == 0 {
-						if cmd == "hex" || cmd == "bin" {
-							if i == 0 {
-								buffer = append([]rune{char}, buffer...)
-							}
-							number := ConvertBase(string(buffer), base[cmd], "0123456789")
-							if char == ' ' {
-								number = " " + number
-							}
-							runes = append([]rune(number), runes...)
-							buffer = []rune{}
-							cmd = ""
-							continue
+				if isHeadWord(char, fileContent, i) {
+					if (char == 'a' || char == 'A') && (i == len(fileContent)-1 || fileContent[i+1] == ' ') {
+						if i != len(fileContent)-1 && isVowel(rune(fileContent[i+2])) {
+							result = append([]rune{'n'}, result...)
 						}
 					}
-					if char == ' ' {
+					if cmd == "cap" && char >= 'a' && char <= 'z' {
+						char -= 32
+						result = append([]rune{char}, result...)
 						numberOfWords--
 						if numberOfWords == 0 {
 							numberOfWords = 1
 							cmd = ""
 						}
-					} else {
-						if cmd == "hex" || cmd == "bin" {
-							buffer = append([]rune{char}, buffer...)
-							continue
-						} else if cmd == "up" && char >= 'a' && char <= 'z' {
-							char -= 32
-						} else if cmd == "low" && char >= 'A' && char <= 'Z' {
-							char += 32
-						} else if cmd == "cap" && isHeadWord(char, fileContent, i) && char >= 'a' && char <= 'z' {
-							char -= 32
-						}
+						continue
+					} else if cmd == "hex" || cmd == "bin" {
+						buffer = append([]rune{char}, buffer...)
+						number := ConvertBase(string(buffer), base[cmd], "0123456789")
+						result = append([]rune(number), result...)
+						buffer = []rune{}
+						cmd = ""
+						continue
 					}
 				}
-				if isPunctuation(char) {
-					if char == '\'' {
-						if (i != len(fileContent)-1 && i >= 3 && fileContent[i-3:i+2] != "don't") || i == len(fileContent)-1 || i < 3 {
-							if !isMark {
-								if i != len(fileContent)-1 && fileContent[i+1] != ' ' {
-									runes = append([]rune{' '}, runes...)
-								} else if i != 0 && fileContent[i-1] == ' ' {
-									i--
+				if char == ' ' || isPunctuation(char) {
+					if cmd != "cap" {
+						numberOfWords--
+						if numberOfWords == 0 {
+							numberOfWords = 1
+							cmd = ""
+						}
+					}
+					if isPunctuation(char) {
+						if char == '\'' {
+							if (i != len(fileContent)-1 && i >= 3 && fileContent[i-3:i+2] != "don't") || i == len(fileContent)-1 || i < 3 {
+								if !isMark {
+									if i != len(fileContent)-1 && fileContent[i+1] != ' ' {
+										result = append([]rune{' '}, result...)
+									} else if i != 0 && fileContent[i-1] == ' ' {
+										i--
+									}
+								} else {
+									if i != len(fileContent)-1 && fileContent[i+1] == ' ' {
+										result = result[1:]
+									} else if i != 0 && fileContent[i-1] != ' ' {
+										result = append([]rune{' '}, result...)
+									}
 								}
-							} else {
-								if i != len(fileContent)-1 && fileContent[i+1] == ' ' {
-									runes = runes[1:]
-								} else if i != 0 && fileContent[i-1] != ' ' {
-									runes = append([]rune{' '}, runes...)
+								isMark = !isMark
+							}
+						} else {
+							if i != len(fileContent)-1 && fileContent[i+1] != '.' && fileContent[i+1] != '?' {
+								if fileContent[i+1] != ' ' && i != len(fileContent)-2 && !isPunctuation(rune(fileContent[i+2])) {
+									result = append([]rune{' '}, result...)
 								}
 							}
-							isMark = !isMark
-						}
-					} else {
-						if i != len(fileContent)-1 && fileContent[i+1] != '.' && fileContent[i+1] != '?' && fileContent[i+1] != ' ' {
-							runes = append([]rune{' '}, runes...)
-						}
-						if i != 0 && fileContent[i-1] == ' ' {
-							i--
+							if i != 0 && fileContent[i-1] == ' ' {
+								i--
+							}
 						}
 					}
-				} else if (char == 'a' || char == 'A') && (i == 0 || fileContent[i-1] == ' ') && (i == len(fileContent)-1 || fileContent[i+1] == ' ') {
-					if i != len(fileContent)-1 && isVowel(rune(fileContent[i+2])) {
-						runes = append([]rune{'n'}, runes...)
+				} else {
+					if cmd == "hex" || cmd == "bin" {
+						buffer = append([]rune{char}, buffer...)
+						continue
+					} else if cmd == "up" && char >= 'a' && char <= 'z' {
+						char -= 32
+					} else if cmd == "low" && char >= 'A' && char <= 'Z' {
+						char += 32
 					}
 				}
-				runes = append([]rune{char}, runes...)
+				result = append([]rune{char}, result...)
 			}
 		}
 	}
-	return string(runes)
+	return string(result)
 }
 
 // Launch the go reloaded process
