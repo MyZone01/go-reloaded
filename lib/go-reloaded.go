@@ -3,6 +3,8 @@ package goreloaded
 import (
 	"fmt"
 	"os"
+	"regexp"
+	"strings"
 )
 
 func isVowel(char rune) bool {
@@ -10,7 +12,11 @@ func isVowel(char rune) bool {
 }
 
 func isHeadWord(char rune, str string, i int) bool {
-	return i == 0 || str[i-1] == ' ' || str[i-1] == '(' || str[i-1] == ')' || isPunctuation(rune(str[i-1]))
+	return i == 0 ||
+		str[i-1] == ' ' ||
+		str[i-1] == '(' ||
+		str[i-1] == ')' ||
+		isPunctuation(rune(str[i-1]))
 }
 
 func isPunctuation(char rune) bool {
@@ -28,26 +34,45 @@ func Format(fileContent string) string {
 	numberOfWords := 1
 	base := map[string]string{
 		"hex": "0123456789ABCDEF",
+		"dec": "0123456789",
 		"bin": "01",
 	}
+	cmdRegEx := regexp.MustCompile(`\((cap|low|up|bin|hex)(\,\s\d+\)|\))`)
 	for i := len(fileContent) - 1; i >= 0; i-- {
 		char := rune(fileContent[i])
 		if char == '(' {
 			if cmd == "" {
-				cmd = string(buffer)
+				buffer = append([]rune{char}, buffer...)
+				_cmd := string(buffer)
+				isMatch := cmdRegEx.MatchString(_cmd)
+				if isMatch {
+					_cmd = _cmd[1 : len(_cmd)-1]
+					cmdPart := strings.Split(_cmd, ", ")
+					cmd = cmdPart[0]
+					if len(cmdPart) == 2 {
+						number := cmdPart[1]
+						numberOfWords = AtoiBase(string(number), base["dec"])
+					}
+					if isHeadWord(char, fileContent, i) {
+						i--
+					}
+				} else {
+					result = append(buffer, result...)
+				}
+			} else if len(buffer) == 0 {
+				result = append([]rune{char}, result...)
 			}
 			buffer = []rune{}
-			if isHeadWord(char, fileContent, i) {
-				i--
-			}
 			cmdFound = false
-		} else if char == ')' {
+		} else if char == ')' && !cmdFound {
 			cmdFound = true
+			buffer = append([]rune{char}, buffer...)
 		} else {
 			if cmdFound {
-				if char == ',' {
-					numberOfWords = AtoiBase(string(buffer[1:]), "0123456789")
-					buffer = []rune{}
+				if char == ')' {
+					buffer = append([]rune{char}, []rune{}...)
+					result = append(buffer, result...)
+					cmdFound = true
 				} else {
 					buffer = append([]rune{char}, buffer...)
 				}

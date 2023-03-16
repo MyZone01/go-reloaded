@@ -80,11 +80,6 @@ func TestGoReloaded(t *testing.T) {
 			expected: "10: 10",
 		},
 		{
-			name:     "Not a command in parenthesis",
-			input:    "flapjacks (cap) are' the best (up, 2) 'snacks (ever)    ... are they a oat (cap, 2) treat",
-			expected: "Flapjacks are 'THE BEST' snacks (ever)... are they An Oat treat",
-		},
-		{
 			name:     "List of punctuations",
 			input:    ".,;",
 			expected: ".,;",
@@ -93,6 +88,16 @@ func TestGoReloaded(t *testing.T) {
 			name:     "List of commands",
 			input:    "I am delighted (up) (up) (up)",
 			expected: "I am DELIGHTED",
+		},
+		{
+			name:     "Not a command in parenthesis",
+			input:    "flapjacks (cap) are the best (up, 2) snacks (ever)    ... are they a oat (cap, 2) treat",
+			expected: "Flapjacks are THE BEST snacks (ever)... are they An Oat treat",
+		},
+		{
+			name:     "Nested parenthesis",
+			input:    "(Ok man(up, 2))",
+			expected: "(OK MAN)",
 		},
 	}
 	for _, test := range tests {
