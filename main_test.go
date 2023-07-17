@@ -94,6 +94,11 @@ func TestGoReloaded(t *testing.T) {
 			input:    "(Ok man(up, 2))",
 			expected: "(OK MAN)",
 		},
+		{
+			name:     "bc",
+			input:    "(hello there (cap, 2))",
+			expected: "(Hello There)",
+		},
 	}
 	for _, test := range tests {
 		if output := goreloaded.Format(test.input); output != test.expected {
