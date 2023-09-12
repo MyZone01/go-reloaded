@@ -85,17 +85,12 @@ func TestGoReloaded(t *testing.T) {
 			expected: "Flapjacks are THE BEST snacks (ever)... are they An Oat treat",
 		},
 		{
-			name:     "Nested parenthesis",
+			name:     "Nested parenthesis 1",
 			input:    "(Ok man(up, 2))",
 			expected: "(OK MAN)",
 		},
 		{
-			name:     "Nested parenthesis",
-			input:    "(Ok man(up, 2))",
-			expected: "(OK MAN)",
-		},
-		{
-			name:     "bc",
+			name:     "Nested parenthesis 2",
 			input:    "(hello there (cap, 2))",
 			expected: "(Hello There)",
 		},
